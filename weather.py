@@ -6,55 +6,59 @@ import sys
 import pprint
 import datetime
 
+def forecastWeather(zipcode):
+    # Download the JSON data from https://www.weatherbit.io/api/weather-forecast-16-day API
+    url = f'https://api.weatherbit.io/v2.0/forecast/daily?postal_code={zipcode}&units=I&days={days}&key={APPID}'
+    response = requests.get(url)
+    response.raise_for_status()
+    # Load JSON data into a Python variable
+    weatherData = json.loads(response.text)
+    w = weatherData
+
+    # Loop to go through the days to forecast
+    for day in range(1, days):
+        forecastTemp = w['data'][day]['high_temp']
+        forecastDesc = w['data'][day]['weather']['description']
+        forecastDate = w['data'][day]['datetime']
+
+        # Print data
+        print(f'{dayOfWeek(forecastDate)}:')
+        print(f'Forecast of a high of {forecastTemp} and {forecastDesc}\n\n')
+
+
 def dayOfWeek(dayWeek):
     day = datetime.datetime.strptime(dayWeek, '%Y-%m-%d')
     day = day.strftime('%A')
     return day
 
-# Compute location from command line arguments.
-
+# Have the user input a zipcode
 zipcode = input('Enter Zip Code: ')
 country_code = 'us'
-state = 'CA'
-days = 5
+days = 5    # days to foreceast
 
-# Download the JSON data from OpenWeatherMap.org's APPID
-url = f'https://api.weatherbit.io/v2.0/forecast/daily?postal_code={zipcode}&units=I&days={days}&key={APPID}'
+# Download the JSON data from https://www.weatherbit.io/api/weather-current APPID
 currenturl = f'https://api.weatherbit.io/v2.0/current?postal_code={zipcode}&units=I&key={APPID}'
-
-response = requests.get(url)
-response.raise_for_status()
 
 responseCurrent = requests.get(currenturl)
 responseCurrent.raise_for_status()
 
 # Load JSON data into a Python variable
-weatherData = json.loads(response.text)
 weatherCurrentData = json.loads(responseCurrent.text)
 
 # Print weather descriptions.
-w = weatherData
 wc = weatherCurrentData
-# pprint.pprint(w)
-
 currentTemp = wc['data'][0]['temp']
 currentDesc = wc['data'][0]['weather']['description']
+currentFeelsLike = wc['data'][0]['app_temp']
 
-tomorrowTemp = w['data'][1]['high_temp']
-tomorrowDesc = w['data'][1]['weather']['description']
-tomorrowDate = w['data'][1]['datetime']
-
-dayAfterTemp = w['data'][2]['high_temp']
-dayAfterDesc = w['data'][2]['weather']['description']
-dayAfterDate = w['data'][2]['datetime']
-
+# print the current weather data
 print('\n')
 print('Today:')
-print(f'Currently {currentTemp} and {currentDesc}' + '\n')
+print(f'Currently {currentTemp} and {currentDesc}')
+print(f'Feels like {currentFeelsLike}' + '\n')
 
-print(f'Tomorrow  ({dayOfWeek(tomorrowDate)}):')
-print(f'Forecast of a high of {tomorrowTemp} and {tomorrowDesc}\n')
+# Call the forecast Weather function
+forecastWeather(zipcode)
 
-print(f'{dayOfWeek(dayAfterDate)}:')
-print(f'Forecast of a high of {dayAfterTemp} and {dayAfterDesc}')
-print('\n\n\n')
+
+# pprint.pprint(w)
